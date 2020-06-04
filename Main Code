@@ -1,0 +1,132 @@
+import pygame
+import random
+import time
+pygame.init()
+screen=pygame.display.set_mode((800,600))
+pygame.display.set_caption("Snakee")
+
+head=pygame.image.load("Head.jpg")
+head2=pygame.transform.rotate(head,90)
+head3=pygame.transform.rotate(head,180)
+head4=pygame.transform.rotate(head,270)
+body=pygame.image.load("Body.jpg")
+food=pygame.image.load("Food1.png")
+font=pygame.font.SysFont('arial',24)
+highscore=0
+
+def game(hs):
+    highscore=hs
+    running = True
+    food_available = True
+    foodx, foody = [random.randint(10, 770), random.randint(10, 570)]
+    snake = []
+    snakex = [385]
+    snakey = [285]
+    up = False
+    down = False
+    left = False
+    right = False
+    snake.append(head)
+
+    clock = pygame.time.Clock()
+    n = 10
+    t = 1
+    while running:
+        screen.fill((0,0,0))
+        for e in pygame.event.get():
+            if e.type==pygame.QUIT:
+                running=False
+                return highscore
+            elif e.type==pygame.KEYDOWN:
+                if e.key==pygame.K_ESCAPE:
+                    running=False
+                    return highscore
+                elif e.key==pygame.K_UP and not down:
+                    up,down,left,right=True,False,False,False
+                    snake[0]=head
+                elif e.key==pygame.K_DOWN and not up:
+                    snake[0]=head3
+                    up,down,left,right=False,True,False,False
+                elif e.key==pygame.K_LEFT and not right:
+                    snake[0]=head2
+                    up,down,left,right=False,False,True,False
+                elif e.key==pygame.K_RIGHT and not left:
+                    snake[0]=head4
+                    up,down,left,right=False,False,False,True
+
+        if food_available==False:
+            food_available=True
+            foodx,foody=[random.randint(10,770),random.randint(10,570)]
+
+        if -16>snakex[0] or snakex[0]>786 or -16>snakey[0] or snakey[0]>586:
+
+            running=False
+            return highscore
+
+        if -30<=snakex[0]-foodx<=20 and -30<=snakey[0]-foody<=20:
+            pygame.mixer.music.load('eat.wav')
+            pygame.mixer.music.play(0)
+            t+=1
+            food_available=False
+            if len(snake)==1:
+                snakex.append(snakex[0])
+                snakey.append(snakey[0])
+            else:
+                snakex.append(snakex[-1])
+                snakey.append(snakey[-1])
+            snake.append(body)
+        i=len(snake)
+        while i>1:
+            i -= 1
+            snakex[i]=snakex[i-1]
+            snakey[i]=snakey[i-1]
+            screen.blit(snake[i],(snakex[i],snakey[i]))
+
+        if up:
+            snakey[0]-=30
+        elif down:
+            snakey[0]+=30
+        elif left:
+            snakex[0]-=30
+        elif right:
+            snakex[0]+=30
+        screen.blit(snake[0], (snakex[0], snakey[0]))
+
+        score=font.render("Current Score:"+str(len(snake)),True,(255,255,255))
+        screen.blit(score,(10,5))
+        if len(snake)>highscore:
+            highscore=len(snake)
+        hscore=font.render("High score is  :"+str(highscore),True,(255,255,255))
+        screen.blit(hscore,(10,28))
+
+        screen.blit(food, (foodx, foody))
+
+        for i in range(len(snake)-1):
+            for j in range(i+1,len(snake)):
+                if snakex[i]==snakex[j] and snakey[i]==snakey[j] and j-i>1:
+
+                    running=False
+                    return highscore
+        if t%4==0:
+            t=1
+            n+=2
+        clock.tick(n)
+        pygame.display.update()
+highscore=game(highscore)
+fon=pygame.font.SysFont('Arial',70)
+option=fon.render('Do You Wanna Play Again(Y/N)',True,(255,255,255))
+running=True
+while running:
+    screen.fill((0,0,0))
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
+            running = False
+        elif e.type == pygame.KEYDOWN:
+            if e.key == pygame.K_ESCAPE:
+                running=False
+            elif e.key==pygame.K_y:
+                highscore=game(highscore)
+            elif e.key==pygame.K_n:
+                running=False
+    screen.blit(option,(0,200))
+    pygame.display.update()
